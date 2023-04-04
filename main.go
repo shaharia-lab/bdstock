@@ -63,7 +63,7 @@ func parseCompanyPageData(doc *goquery.Document) Company {
 }
 
 func getAllStockCodes() []string {
-	old, err := fetchHomepage("https://www.dsebd.org/")
+	old, err := fetchCompanyPage("https://www.dsebd.org/")
 	if err != nil {
 		panic(err)
 	}
@@ -80,22 +80,6 @@ func getStockInformation(stockCode string) Company {
 	return parseCompanyPageData(page)
 }
 
-func fetchHomepage(url string) (*goquery.Document, error) {
-	// Make an HTTP GET request to the URL
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	// Parse the response body using goquery
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return doc, nil
-}
 func parseStockCodes(doc *goquery.Document) []string {
 	var stockCodes []string
 
