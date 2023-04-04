@@ -1,19 +1,17 @@
+// Package stock
 package stock
 
 import (
 	"errors"
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
 	"net/http"
 	"strings"
 	"sync"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
-const (
-	DseBdHomepage     = "https://www.dsebd.org/"
-	CompanyPageFormat = "https://www.dsebd.org/displayCompany.php?name=%s"
-)
-
+// CompanyStockData store stock data
 type CompanyStockData struct {
 	StockCode            string
 	LastTradingPrice     string
@@ -29,15 +27,18 @@ type CompanyStockData struct {
 	MarketCapitalization string
 }
 
+// Stock processor
 type Stock struct {
 	verbose     bool
 	dseEndpoint string
 }
 
+// NewStock construct new stock processor
 func NewStock(dseEndpoint string, verbose bool) *Stock {
 	return &Stock{verbose: verbose, dseEndpoint: dseEndpoint}
 }
 
+// GetData fetch data from URL
 func (s *Stock) GetData(batchSize int) ([]CompanyStockData, error) {
 	stockCodes := s.getAllStockCodes()
 
