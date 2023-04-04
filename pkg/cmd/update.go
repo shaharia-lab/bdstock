@@ -2,10 +2,12 @@
 package cmd
 
 import (
-	"bd-stock-market/pkg/stock"
 	"fmt"
-	"github.com/spf13/cobra"
 	"os"
+
+	"bd-stock-market/pkg/stock"
+
+	"github.com/spf13/cobra"
 )
 
 // NewUpdateCommand build "display" name
