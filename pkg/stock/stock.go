@@ -1,4 +1,4 @@
-// Package stock
+// Package stock collect stock information
 package stock
 
 import (
@@ -81,7 +81,7 @@ func min(a, b int) int {
 }
 
 func (s *Stock) getAllStockCodes() []string {
-	dseHomepage, err := s.getHtml("/")
+	dseHomepage, err := s.getHTML("/")
 	if err != nil {
 		panic(err)
 	}
@@ -105,7 +105,7 @@ func (s *Stock) parseStockCodes(doc *goquery.Document) []string {
 }
 
 func (s *Stock) getStockInformation(stockCode string) CompanyStockData {
-	companySpecificPage, err := s.getHtml(fmt.Sprintf("/displayCompany.php?name=%s", stockCode))
+	companySpecificPage, err := s.getHTML(fmt.Sprintf("/displayCompany.php?name=%s", stockCode))
 	if err != nil {
 		panic(err)
 	}
@@ -135,7 +135,7 @@ func (s *Stock) parseCompanyPageData(stockCode string, doc *goquery.Document) Co
 	return companyData
 }
 
-func (s *Stock) getHtml(url string) (*goquery.Document, error) {
+func (s *Stock) getHTML(url string) (*goquery.Document, error) {
 	resp, err := http.Get(s.dseEndpoint + url)
 	if err != nil {
 		return nil, err
