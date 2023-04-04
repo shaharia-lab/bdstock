@@ -11,6 +11,8 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
+const batchSize = 10
+
 // CompanyStockData store stock data
 type CompanyStockData struct {
 	StockCode            string
@@ -39,7 +41,7 @@ func NewStock(dseEndpoint string, verbose bool) *Stock {
 }
 
 // GetData fetch data from URL
-func (s *Stock) GetData(batchSize int) ([]CompanyStockData, error) {
+func (s *Stock) GetData() ([]CompanyStockData, error) {
 	stockCodes := s.getAllStockCodes()
 
 	// Create a channel to receive the stock information

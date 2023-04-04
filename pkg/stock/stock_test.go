@@ -42,7 +42,7 @@ func TestStock_GetData(t *testing.T) {
 	defer ts.Close()
 
 	st := NewStock(ts.URL, false)
-	data, err := st.GetData(5)
+	data, err := st.GetData()
 	assert.NoError(t, err)
 
 	assert.Equal(t, 330, len(data))
