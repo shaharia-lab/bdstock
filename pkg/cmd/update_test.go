@@ -1,3 +1,4 @@
+// Package cmd CLI command
 package cmd
 
 import (
@@ -13,6 +14,29 @@ import (
 	"net/http"
 	"net/http/httptest"
 )
+
+func TestGreetCommand(t *testing.T) {
+	ts := httptest.NewServer(getHandler())
+	defer ts.Close()
+
+	os.Setenv("DSE_ENDPOINT", ts.URL)
+
+	t.Run("Greet with no name", func(t *testing.T) {
+		updateCmd := NewUpdateCommand()
+		_, err := executeCommand(updateCmd)
+
+		assert.NoError(t, err)
+	})
+}
+
+func readTestDataFile(filename string) (string, error) {
+	data, err := ioutil.ReadFile(fmt.Sprintf("testdata/%s", filename))
+	if err != nil {
+		return "", err
+	}
+
+	return string(data), nil
+}
 
 func executeCommand(cmd *cobra.Command, args ...string) (string, error) {
 	buf := new(bytes.Buffer)
@@ -41,27 +65,4 @@ func getHandler() http.Handler {
 	})
 
 	return mux
-}
-
-func TestGreetCommand(t *testing.T) {
-	ts := httptest.NewServer(getHandler())
-	defer ts.Close()
-
-	os.Setenv("DSE_ENDPOINT", ts.URL)
-
-	t.Run("Greet with no name", func(t *testing.T) {
-		updateCmd := NewUpdateCommand()
-		err := updateCmd.Execute()
-
-		assert.NoError(t, err)
-	})
-}
-
-func readTestDataFile(filename string) (string, error) {
-	data, err := ioutil.ReadFile(fmt.Sprintf("testdata/%s", filename))
-	if err != nil {
-		return "", err
-	}
-
-	return string(data), nil
 }
