@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -28,10 +29,12 @@ func NewUpdateCommand() *cobra.Command {
 				return err
 			}
 
-			for _, info := range stockData {
-				fmt.Printf("\n\n==%s==\nLast Trading Price: %s\nClosing Price: %s\nLast Update: %s\nDay's Range: %s\nWeeks Moving Range: %s\nOpening Price: %s\nDays Volume: %s\nAdjusted Opening: %s\nDays Trade: %s\nYesterday Closing: %s\nMarket Capitalization: %s\n",
-					info.StockCode, info.LastTradingPrice, info.ClosingPrice, info.LastUpdate, info.DaysRange, info.WeeksMovingRange, info.OpeningPrice, info.DaysVolume, info.AdjustedOpening, info.DaysTrade, info.YesterdayClosing, info.MarketCapitalization)
+			jsonData, err := json.MarshalIndent(stockData, "", " ")
+			if err != nil {
+				return fmt.Errorf("failed to marshal json. erro: %w", err)
 			}
+
+			fmt.Println(string(jsonData))
 
 			return nil
 		},
