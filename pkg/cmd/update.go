@@ -22,26 +22,14 @@ func NewUpdateCommand() *cobra.Command {
 		Long:  "Update stock price information for companies",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			st := stock.NewStock("https://www.dsebd.org", false)
-
 			stockData, err := st.GetData(collectionBatchSize)
 			if err != nil {
 				return err
 			}
 
-			if outputFormat == "json" {
-				jsonData, err := json.MarshalIndent(stockData, "", "  ")
-				if err != nil {
-					return fmt.Errorf("error encoding JSON")
-				}
-
-				if outputFile != "" {
-					err = ioutil.WriteFile(outputFile, jsonData, 0644)
-					if err != nil {
-						return fmt.Errorf("error writing file: %w", err)
-					}
-
-					fmt.Println("data has been saved")
-				}
+			err = processJSONOutput(outputFormat, stockData, outputFile)
+			if err != nil {
+				return err
 			}
 
 			for _, info := range stockData {
@@ -59,4 +47,23 @@ func NewUpdateCommand() *cobra.Command {
 	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Verbose output")
 
 	return &cmd
+}
+
+func processJSONOutput(outputFormat string, stockData []stock.CompanyStockData, outputFile string) error {
+	if outputFormat == "json" {
+		jsonData, err := json.MarshalIndent(stockData, "", "  ")
+		if err != nil {
+			return fmt.Errorf("error encoding JSON")
+		}
+
+		if outputFile != "" {
+			err = ioutil.WriteFile(outputFile, jsonData, 0644)
+			if err != nil {
+				return fmt.Errorf("error writing file: %w", err)
+			}
+
+			fmt.Println("data has been saved")
+		}
+	}
+	return nil
 }
