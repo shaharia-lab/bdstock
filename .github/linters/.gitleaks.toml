@@ -1,0 +1,3 @@
+[regex]
+  AWS-EC2-Instance-ID = '''(?i)aws-ec2-instance-id'''
+  AWS-EC2-VpcId = '''(?i)aws-ec2-vpcid'''

@@ -1,0 +1,30 @@
+project_name: bdstock
+builds:
+  - env: [CGO_ENABLED=0]
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+dockers:
+  - image_templates: ["ghcr.io/shahariaazam/bdstock:{{ .Version }}"]
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - --label=org.opencontainers.image.title={{ .ProjectName }}
+      - --label=org.opencontainers.image.description={{ .ProjectName }}
+      - --label=org.opencontainers.image.url=https://github.com/shahariaazam/bdstock
+      - --label=org.opencontainers.image.source=https://github.com/shahariaazam/bdstock
+      - --label=org.opencontainers.image.version={{ .Version }}
+      - --label=org.opencontainers.image.revision={{ .FullCommit }}
+      - --label=org.opencontainers.image.licenses=MIT
+nfpms:
+  - maintainer: Shaharia Azam <mail@shaharia.com>
+    description: Collect Bangladeshi Stock market stock price information
+    homepage: https://github.com/shahariaazam/bdstock
+    license: MIT
+    formats:
+      - deb
+      - rpm
+      - apk
