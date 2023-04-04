@@ -1,3 +1,4 @@
+//Package main
 package main
 
 import (
@@ -7,6 +8,7 @@ import (
 	"strings"
 )
 
+// Company store company stock information
 type Company struct {
 	LastTradingPrice     string
 	ClosingPrice         string
@@ -21,7 +23,7 @@ type Company struct {
 	MarketCapitalization string
 }
 
-func FetchPage(url string) (*goquery.Document, error) {
+func fetchCompanyPage(url string) (*goquery.Document, error) {
 	// Make an HTTP GET request to the URL
 	resp, err := http.Get(url)
 	if err != nil {
@@ -38,7 +40,7 @@ func FetchPage(url string) (*goquery.Document, error) {
 	return doc, nil
 }
 
-func ParseData(doc *goquery.Document) Company {
+func parseCompanyPageData(doc *goquery.Document) Company {
 	// Parse table rows using goquery
 	rows := doc.Find("table#company tbody tr")
 
@@ -59,7 +61,7 @@ func ParseData(doc *goquery.Document) Company {
 	return companyData
 }
 
-func GetAllStockCodes() []string {
+func getAllStockCodes() []string {
 	old, err := fetchHomepage("https://www.dsebd.org/")
 	if err != nil {
 		panic(err)
@@ -68,13 +70,13 @@ func GetAllStockCodes() []string {
 	return parseStockCodes(old)
 }
 
-func GetStockInformation(stockCode string) Company {
-	page, err := FetchPage(fmt.Sprintf("https://www.dsebd.org/displayCompany.php?name=%s", stockCode))
+func getStockInformation(stockCode string) Company {
+	page, err := fetchCompanyPage(fmt.Sprintf("https://www.dsebd.org/displayCompany.php?name=%s", stockCode))
 	if err != nil {
 		panic(err)
 	}
 
-	return ParseData(page)
+	return parseCompanyPageData(page)
 }
 
 func fetchHomepage(url string) (*goquery.Document, error) {
@@ -110,7 +112,7 @@ func parseStockCodes(doc *goquery.Document) []string {
 
 func main() {
 	// Fetch all stock codes
-	stockCodes := GetAllStockCodes()
+	stockCodes := getAllStockCodes()
 
 	// Create a channel to receive the stock information
 	stockInfoChan := make(chan Company)
@@ -118,7 +120,7 @@ func main() {
 	// Fetch stock information in multiple goroutines
 	for _, code := range stockCodes {
 		go func(code string) {
-			stockInfoChan <- GetStockInformation(code)
+			stockInfoChan <- getStockInformation(code)
 		}(code)
 	}
 
