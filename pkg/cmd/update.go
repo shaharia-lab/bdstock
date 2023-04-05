@@ -29,7 +29,7 @@ func NewUpdateCommand() *cobra.Command {
 				return err
 			}
 
-			jsonData, err := json.MarshalIndent(stockData, "", " ")
+			jsonData, err := json.MarshalIndent(stockData, " ", "   ")
 			if err != nil {
 				return fmt.Errorf("failed to marshal json. erro: %w", err)
 			}

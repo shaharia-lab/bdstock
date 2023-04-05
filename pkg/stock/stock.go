@@ -44,12 +44,16 @@ func NewStock(dseEndpoint string, verbose bool) *Stock {
 func (s *Stock) GetData() ([]CompanyStockData, error) {
 	stockCodes := s.getAllStockCodes()
 
-	// Create a channel to receive the stock information
+	stockInfo := s.collectStockPriceInBatch(stockCodes, batchSize)
+
+	return stockInfo, nil
+}
+
+func (s *Stock) collectStockPriceInBatch(stockCodes []string, batchSize int) []CompanyStockData {
 	var stockInfo []CompanyStockData
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 
-	// Fetch stock information in multiple goroutines
 	i := 1
 	perGoroutine := len(stockCodes) / batchSize
 	for j := 0; j < len(stockCodes); j += perGoroutine {
@@ -70,8 +74,7 @@ func (s *Stock) GetData() ([]CompanyStockData, error) {
 		}(j, min(j+perGoroutine, len(stockCodes)))
 	}
 	wg.Wait()
-
-	return stockInfo, nil
+	return stockInfo
 }
 
 // helper function to get minimum of two integers
