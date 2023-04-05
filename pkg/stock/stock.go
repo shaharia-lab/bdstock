@@ -65,7 +65,7 @@ func (s *Stock) collectStockPriceInBatch(stockCodes []string, batchSize int) []C
 	s.printLog(fmt.Sprintf("total stocks: %d", totalStocks))
 
 	startTime := time.Now()
-	s.printLog(fmt.Sprintf("started at: %s\n", startTime.Format("05.04.2022 11:23:00")))
+	s.printLog(fmt.Sprintf("started at: %s\n", startTime.Format("2006-01-02 15:04:05")))
 
 	for j := 0; j < totalStocks; j += perGoroutine {
 		wg.Add(1)
