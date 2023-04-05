@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -15,18 +16,18 @@ const batchSize = 10
 
 // CompanyStockData store stock data
 type CompanyStockData struct {
-	StockCode            string
-	LastTradingPrice     string
-	ClosingPrice         string
-	LastUpdate           string
-	DaysRange            string
-	WeeksMovingRange     string
-	OpeningPrice         string
-	DaysVolume           string
-	AdjustedOpening      string
-	DaysTrade            string
-	YesterdayClosing     string
-	MarketCapitalization string
+	StockCode            string `json:"stock_code"`
+	LastTradingPrice     string `json:"last_trading_price"`
+	ClosingPrice         string `json:"closing_price"`
+	LastUpdate           string `json:"last_update"`
+	DaysRange            string `json:"days_range"`
+	WeeksMovingRange     string `json:"weeks_moving_range"`
+	OpeningPrice         string `json:"opening_price"`
+	DaysVolume           string `json:"days_volume"`
+	AdjustedOpening      string `json:"adjusted_opening"`
+	DaysTrade            string `json:"days_trade"`
+	YesterdayClosing     string `json:"yesterday_closing"`
+	MarketCapitalization string `json:"market_capitalization"`
 }
 
 // Stock processor
@@ -56,14 +57,23 @@ func (s *Stock) collectStockPriceInBatch(stockCodes []string, batchSize int) []C
 
 	i := 1
 	perGoroutine := len(stockCodes) / batchSize
-	for j := 0; j < len(stockCodes); j += perGoroutine {
+	totalStocks := len(stockCodes)
+
+	s.printLog("== Bangladesh Stock Market ==\n")
+	s.printLog("started collecting..")
+	s.printLog(fmt.Sprintf("per batch: %d", batchSize))
+	s.printLog(fmt.Sprintf("total stocks: %d", totalStocks))
+
+	startTime := time.Now()
+	s.printLog(fmt.Sprintf("started at: %s\n", startTime.Format("05.04.2022 11:23:00")))
+
+	for j := 0; j < totalStocks; j += perGoroutine {
 		wg.Add(1)
 		go func(start, end int) {
 			defer wg.Done()
 			for _, code := range stockCodes[start:end] {
-				if s.verbose {
-					fmt.Printf("[%d/%d] fetching %s\n", i, len(stockCodes), code)
-				}
+
+				s.printLog(fmt.Sprintf("[%d/%d] collecting stock price for %s", i, len(stockCodes), code))
 
 				companyData := s.getStockInformation(code)
 				mu.Lock()
@@ -74,6 +84,12 @@ func (s *Stock) collectStockPriceInBatch(stockCodes []string, batchSize int) []C
 		}(j, min(j+perGoroutine, len(stockCodes)))
 	}
 	wg.Wait()
+
+	s.printLog("\nfinished\n")
+
+	elapsedTime := time.Since(startTime)
+	s.printLog(fmt.Sprintf("elapsed time: %s seconds", elapsedTime.String()))
+
 	return stockInfo
 }
 
@@ -157,4 +173,10 @@ func (s *Stock) getHTML(url string) (*goquery.Document, error) {
 	}
 
 	return doc, nil
+}
+
+func (s *Stock) printLog(message string) {
+	if s.verbose {
+		fmt.Println(message)
+	}
 }
