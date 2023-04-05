@@ -24,7 +24,7 @@
 ## 🤔  What is BDStock?
 
 **BD Stock Market** a.k.a **bdstock** is a command-line tool that collects and provide stock price information for
-Bangladeshi stock exchange market. Currently, it provides the stock information only for [Dhaka Stock Exchange](https://www.dsebd.org). 
+Bangladeshi stock exchange market. Currently, it provides the stock information only for [Dhaka Stock Exchange](https://www.dsebd.org).
 
 ## Usage
 

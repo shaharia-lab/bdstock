@@ -55,5 +55,4 @@ This project and its community is governed by the [Code of Conduct](https://gith
 License
 -------
 
-By contributing to this project, you agree that your contributions will be licensed under the [project's license]
-(https://github.com/shahariaazam/bd-stock-market/blob/master/LICENSE).
+By contributing to this project, you agree that your contributions will be licensed under the [project's license](https://github.com/shahariaazam/bd-stock-market/blob/master/LICENSE).
