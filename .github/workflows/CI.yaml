@@ -45,7 +45,7 @@ jobs:
           VALIDATE_ALL_CODEBASE: false
           DEFAULT_BRANCH: master
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          FILTER_REGEX_EXCLUDE: .*testdata/.*.html,CONTRIBUTING.md,CODE_OF_CONDUCT.md.
+          FILTER_REGEX_EXCLUDE: .*testdata/.*.html|CONTRIBUTING.md|CODE_OF_CONDUCT.md.
 
   test:
     runs-on: ubuntu-latest
