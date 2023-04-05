@@ -1,0 +1,23 @@
+name: Check Parser on Every Friday
+
+on:
+  schedule:
+    - cron: '0 0 * * 5'
+
+jobs:
+  parser-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Go ^1.20
+        uses: actions/setup-go@v3
+        with:
+          go-version: '^1.20'
+
+      - name: Build
+        run: make build
+
+      - name: Run update command
+        run: ./build/bdstock update
