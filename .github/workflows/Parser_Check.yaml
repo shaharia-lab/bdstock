@@ -1,0 +1,36 @@
+name: Check Parser on Every Friday
+
+on:
+  schedule:
+    - cron: '0 0 * * 5'
+
+jobs:
+  parser-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Go ^1.20
+        uses: actions/setup-go@v3
+        with:
+          go-version: '^1.20'
+
+      - name: Build
+        run: make build
+
+      - name: Run update command
+        run: ./build/bdstock update --file data.json
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Check JSON file
+        run: |
+          empty_fields=$(jq '.[] | select(to_entries[] | .value == null or .value == "")' < data.json)
+          if [ -n "$empty_fields" ]; then
+            echo "Empty value found in JSON file"
+            exit 1
+          else
+            echo "All fields in JSON file have values"
+          fi

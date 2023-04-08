@@ -4,6 +4,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 
 	"bd-stock-market/pkg/stock"
@@ -13,6 +14,8 @@ import (
 
 // NewUpdateCommand build "display" name
 func NewUpdateCommand() *cobra.Command {
+	var filename string
+
 	cmd := cobra.Command{
 		Use:   "update",
 		Short: "Update stock price information for companies",
@@ -23,7 +26,7 @@ func NewUpdateCommand() *cobra.Command {
 				dseEndpoint = "https://www.dsebd.org"
 			}
 
-			st := stock.NewStock(dseEndpoint, false)
+			st := stock.NewStock(dseEndpoint, filename != "")
 			stockData, err := st.GetData()
 			if err != nil {
 				return err
@@ -34,11 +37,20 @@ func NewUpdateCommand() *cobra.Command {
 				return fmt.Errorf("failed to marshal json. erro: %w", err)
 			}
 
-			fmt.Println(string(jsonData))
+			if filename != "" {
+				err = ioutil.WriteFile(filename, jsonData, 0644)
+				if err != nil {
+					return fmt.Errorf("failed to write data to file. error: %w", err)
+				}
+			} else {
+				fmt.Println(string(jsonData))
+			}
 
 			return nil
 		},
 	}
+
+	cmd.Flags().StringVarP(&filename, "file", "f", "", "output filename")
 
 	return &cmd
 }
