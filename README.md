@@ -32,7 +32,7 @@ Download the latest release from [GitHub](https://github.com/shahariaazam/bd-sto
 program. Here is the command details.
 
 ```shell
-➜ bdstock       
+➜ bdstock                          
 Get the stock price information from Bangladesh Stock market
 
 Usage:
@@ -47,16 +47,17 @@ Flags:
   -h, --help      help for this command
   -v, --version   version for this command
 
-Use " [command] --help" for more information about a command
+Use " [command] --help" for more information about a command.
 ```
 
 To get the latest stock price, please run `update` command
 
 ```shell
-➜ bdstock update
+➜ bdstock update --file savedata.json
 ```
 
-And it will output the stock information in JSON format.
+And it will output the stock information in JSON format (if you don't provide `--file` flag). If you add `--file`
+flag, the stock information will be saved to the file.
 
 ```shell
 [

@@ -20,4 +20,17 @@ jobs:
         run: make build
 
       - name: Run update command
-        run: ./build/bdstock update
+        run: ./build/bdstock update --file data.json
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Check JSON file
+        run: |
+          empty_fields=$(jq '.[] | select(to_entries[] | .value == null or .value == "")' < data.json)
+          if [ -n "$empty_fields" ]; then
+            echo "Empty value found in JSON file"
+            exit 1
+          else
+            echo "All fields in JSON file have values"
+          fi
