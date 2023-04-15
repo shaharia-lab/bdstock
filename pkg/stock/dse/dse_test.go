@@ -1,7 +1,8 @@
-package stock
+package dse
 
 import (
 	"fmt"
+	"github.com/shahariaazam/bdstock/pkg/stock"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -39,7 +40,7 @@ func TestStock_GetData(t *testing.T) {
 
 	assert.Equal(t, 330, len(data))
 
-	var testData CompanyStockData
+	var testData stock.CompanyStockData
 	for _, sd := range data {
 		if sd.StockCode == "1JANATAMF" {
 			testData = sd

@@ -1,9 +1,10 @@
-// Package stock collect stock information
-package stock
+// Package dse collect stock information
+package dse
 
 import (
 	"errors"
 	"fmt"
+	"github.com/shahariaazam/bdstock/pkg/stock"
 	"net/http"
 	"strings"
 	"sync"
@@ -20,22 +21,6 @@ type DSEConfig struct {
 type Config struct {
 	DSE       DSEConfig
 	BatchSize int `envconfig:"DSE_BATCH_SIZE" default:"10"`
-}
-
-// CompanyStockData store stock data
-type CompanyStockData struct {
-	StockCode            string `json:"stock_code"`
-	LastTradingPrice     string `json:"last_trading_price"`
-	ClosingPrice         string `json:"closing_price"`
-	LastUpdate           string `json:"last_update"`
-	DaysRange            string `json:"days_range"`
-	WeeksMovingRange     string `json:"weeks_moving_range"`
-	OpeningPrice         string `json:"opening_price"`
-	DaysVolume           string `json:"days_volume"`
-	AdjustedOpening      string `json:"adjusted_opening"`
-	DaysTrade            string `json:"days_trade"`
-	YesterdayClosing     string `json:"yesterday_closing"`
-	MarketCapitalization string `json:"market_capitalization"`
 }
 
 // Stock processor
@@ -56,7 +41,7 @@ func NewStock(verbose bool) *Stock {
 }
 
 // GetAllStocks fetch and parse all stocks from Dhaka Stock Exchange
-func (s *Stock) GetAllStocks() ([]CompanyStockData, error) {
+func (s *Stock) GetAllStocks() ([]stock.CompanyStockData, error) {
 	stockCodes, err := s.GetAllStockCodes()
 	if err != nil {
 		return nil, err
@@ -65,15 +50,15 @@ func (s *Stock) GetAllStocks() ([]CompanyStockData, error) {
 	stockInfo, ers := s.GetStockInBatches(stockCodes, s.config.BatchSize)
 
 	if len(ers) == len(stockCodes) {
-		return []CompanyStockData{}, fmt.Errorf("failed to get the stock information due to errors")
+		return []stock.CompanyStockData{}, fmt.Errorf("failed to get the stock information due to errors")
 	}
 
 	return stockInfo, nil
 }
 
 // GetStockInBatches fetch and parse stock information in batches with parallel processing
-func (s *Stock) GetStockInBatches(stockCodes []string, batchSize int) ([]CompanyStockData, []error) {
-	var stockInfo []CompanyStockData
+func (s *Stock) GetStockInBatches(stockCodes []string, batchSize int) ([]stock.CompanyStockData, []error) {
+	var stockInfo []stock.CompanyStockData
 	var ers []error
 
 	var wg sync.WaitGroup
@@ -124,24 +109,24 @@ func (s *Stock) GetStockInBatches(stockCodes []string, batchSize int) ([]Company
 }
 
 // GetStockInfo fetch and parse stock information for a specific stock or company
-func (s *Stock) GetStockInfo(stockCode string) (CompanyStockData, error) {
+func (s *Stock) GetStockInfo(stockCode string) (stock.CompanyStockData, error) {
 	companyPageHTML, err := s.getHTML(fmt.Sprintf("/displayCompany.php?name=%s", stockCode))
 	if err != nil {
-		return CompanyStockData{}, fmt.Errorf("failed to fetch company page. erro: %w", err)
+		return stock.CompanyStockData{}, fmt.Errorf("failed to fetch company page. erro: %w", err)
 	}
 
 	doc, err := goquery.NewDocumentFromReader(companyPageHTML.Body)
 	if err != nil {
-		return CompanyStockData{}, fmt.Errorf("failed to prepare the parser. error: %w", err)
+		return stock.CompanyStockData{}, fmt.Errorf("failed to prepare the parser. error: %w", err)
 	}
 
 	return s.ParseCompanyPage(stockCode, doc), nil
 }
 
-func (s *Stock) ParseCompanyPage(stockCode string, doc *goquery.Document) CompanyStockData {
+func (s *Stock) ParseCompanyPage(stockCode string, doc *goquery.Document) stock.CompanyStockData {
 	rows := doc.Find("table#company tbody tr")
 
-	return CompanyStockData{
+	return stock.CompanyStockData{
 		StockCode:            stockCode,
 		LastTradingPrice:     rows.Eq(1).Find("td").Eq(1).Text(),
 		ClosingPrice:         rows.Eq(1).Find("td").Eq(1).Text(),
