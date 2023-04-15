@@ -4,112 +4,30 @@ package dse
 import (
 	"errors"
 	"fmt"
-	"github.com/shahariaazam/bdstock/pkg/stock"
 	"net/http"
+	"os"
 	"strings"
-	"sync"
-	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/kelseyhightower/envconfig"
+	"github.com/shahariaazam/bdstock/pkg/stock"
+	"github.com/sirupsen/logrus"
 )
 
-type DSEConfig struct {
-	Homepage string `envconfig:"DSE_HOMEPAGE" default:"https://www.dsebd.org/"`
+// DSE processor
+type DSE struct {
+	Logger *logrus.Logger
 }
 
-type Config struct {
-	DSE       DSEConfig
-	BatchSize int `envconfig:"DSE_BATCH_SIZE" default:"10"`
-}
-
-// Stock processor
-type Stock struct {
-	verbose bool
-	config  Config
-}
-
-// NewStock construct new stock processor
-func NewStock(verbose bool) *Stock {
-	var cfg Config
-	err := envconfig.Process("", &cfg)
-	if err != nil {
-		return nil
+func (s *DSE) resolveHomepage() string {
+	if found, ok := os.LookupEnv("DSE_HOMEPAGE"); ok {
+		return found
 	}
 
-	return &Stock{verbose: verbose, config: cfg}
+	return "https://www.dsebd.org/"
 }
 
-// GetAllStocks fetch and parse all stocks from Dhaka Stock Exchange
-func (s *Stock) GetAllStocks() ([]stock.CompanyStockData, error) {
-	stockCodes, err := s.GetAllStockCodes()
-	if err != nil {
-		return nil, err
-	}
-
-	stockInfo, ers := s.GetStockInBatches(stockCodes, s.config.BatchSize)
-
-	if len(ers) == len(stockCodes) {
-		return []stock.CompanyStockData{}, fmt.Errorf("failed to get the stock information due to errors")
-	}
-
-	return stockInfo, nil
-}
-
-// GetStockInBatches fetch and parse stock information in batches with parallel processing
-func (s *Stock) GetStockInBatches(stockCodes []string, batchSize int) ([]stock.CompanyStockData, []error) {
-	var stockInfo []stock.CompanyStockData
-	var ers []error
-
-	var wg sync.WaitGroup
-	var mu sync.Mutex
-
-	i := 1
-	perGoroutine := len(stockCodes) / batchSize
-	totalStocks := len(stockCodes)
-
-	s.printLog("== Bangladesh Stock Market ==\n")
-	s.printLog("started collecting..")
-	s.printLog(fmt.Sprintf("per batch: %d", batchSize))
-	s.printLog(fmt.Sprintf("total stocks: %d", totalStocks))
-
-	startTime := time.Now()
-	s.printLog(fmt.Sprintf("started at: %s\n", startTime.Format("2006-01-02 15:04:05")))
-
-	for j := 0; j < totalStocks; j += perGoroutine {
-		wg.Add(1)
-		go func(start, end int) {
-			defer wg.Done()
-			for _, code := range stockCodes[start:end] {
-
-				s.printLog(fmt.Sprintf("[%d/%d] collecting stock price for %s", i, len(stockCodes), code))
-
-				companyData, err := s.GetStockInfo(code)
-				mu.Lock()
-
-				if err != nil {
-					ers = append(ers, err)
-				} else {
-					stockInfo = append(stockInfo, companyData)
-				}
-
-				mu.Unlock()
-				i++
-			}
-		}(j, min(j+perGoroutine, len(stockCodes)))
-	}
-	wg.Wait()
-
-	s.printLog("\nfinished\n")
-
-	elapsedTime := time.Since(startTime)
-	s.printLog(fmt.Sprintf("elapsed time: %s seconds", elapsedTime.String()))
-
-	return stockInfo, ers
-}
-
-// GetStockInfo fetch and parse stock information for a specific stock or company
-func (s *Stock) GetStockInfo(stockCode string) (stock.CompanyStockData, error) {
+// GetStockData fetch and parse stock information for a specific stock or company
+func (s *DSE) GetStockData(stockCode string) (stock.CompanyStockData, error) {
 	companyPageHTML, err := s.getHTML(fmt.Sprintf("/displayCompany.php?name=%s", stockCode))
 	if err != nil {
 		return stock.CompanyStockData{}, fmt.Errorf("failed to fetch company page. erro: %w", err)
@@ -120,10 +38,24 @@ func (s *Stock) GetStockInfo(stockCode string) (stock.CompanyStockData, error) {
 		return stock.CompanyStockData{}, fmt.Errorf("failed to prepare the parser. error: %w", err)
 	}
 
-	return s.ParseCompanyPage(stockCode, doc), nil
+	return s.parseCompanyPage(stockCode, doc), nil
 }
 
-func (s *Stock) ParseCompanyPage(stockCode string, doc *goquery.Document) stock.CompanyStockData {
+func (s *DSE) GetStockCodes() ([]string, error) {
+	dseHomepage, err := s.getHTML("/")
+	if err != nil {
+		panic(err)
+	}
+
+	doc, err := goquery.NewDocumentFromReader(dseHomepage.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to prepare the parser. error: %w", err)
+	}
+
+	return s.parseStockCodes(doc), nil
+}
+
+func (s *DSE) parseCompanyPage(stockCode string, doc *goquery.Document) stock.CompanyStockData {
 	rows := doc.Find("table#company tbody tr")
 
 	return stock.CompanyStockData{
@@ -142,8 +74,9 @@ func (s *Stock) ParseCompanyPage(stockCode string, doc *goquery.Document) stock.
 	}
 }
 
-func (s *Stock) getHTML(url string) (*http.Response, error) {
-	resp, err := http.Get(s.config.DSE.Homepage + url)
+func (s *DSE) getHTML(url string) (*http.Response, error) {
+	homepage := s.resolveHomepage()
+	resp, err := http.Get(homepage + url)
 	if err != nil {
 		return nil, err
 	}
@@ -155,40 +88,10 @@ func (s *Stock) getHTML(url string) (*http.Response, error) {
 	return resp, nil
 }
 
-func (s *Stock) printLog(message string) {
-	if s.verbose {
-		fmt.Println(message)
-	}
-}
-
-// helper function to get minimum of two integers
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-func (s *Stock) GetAllStockCodes() ([]string, error) {
-	dseHomepage, err := s.getHTML("/")
-	if err != nil {
-		panic(err)
-	}
-
-	doc, err := goquery.NewDocumentFromReader(dseHomepage.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to prepare the parser. error: %w", err)
-	}
-
-	return s.ParseStockCodes(doc), nil
-}
-
-func (s *Stock) ParseStockCodes(doc *goquery.Document) []string {
+func (s *DSE) parseStockCodes(doc *goquery.Document) []string {
 	var stockCodes []string
 
-	// Find all <a> elements with class "abhead" and extract the company stock code
 	doc.Find("a.abhead").Each(func(i int, s *goquery.Selection) {
-		// Extract the code from the <a> element's href attribute
 		href, _ := s.Attr("href")
 		code := strings.Split(href, "=")[1]
 

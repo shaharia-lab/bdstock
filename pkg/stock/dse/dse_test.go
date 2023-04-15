@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/shahariaazam/bdstock/pkg/stock"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"testing"
 
@@ -20,43 +21,51 @@ func readTestDataFile(filename string) (string, error) {
 	return string(data), nil
 }
 
-func TestStock_GetData(t *testing.T) {
-	dseHomePageHTML, _ := readTestDataFile("dse_homepage.html")
+func TestStock_GetStockData(t *testing.T) {
+	tests := []struct {
+		name                string
+		stockCode           string
+		expectedCompanyData stock.CompanyStockData
+	}{
+		{
+			name:      "return all data successfully",
+			stockCode: "1JANATAMF",
+			expectedCompanyData: stock.CompanyStockData{
+				StockCode:            "1JANATAMF",
+				LastTradingPrice:     "6.10",
+				ClosingPrice:         "6.10",
+				LastUpdate:           "2:10 PM",
+				DaysRange:            "6.10 - 6.10",
+				WeeksMovingRange:     "5.70 - 6.60",
+				OpeningPrice:         "6.10",
+				DaysVolume:           "30,022.00",
+				AdjustedOpening:      "6.10",
+				DaysTrade:            "14",
+				YesterdayClosing:     "6.10",
+				MarketCapitalization: "1,768.532",
+			},
+		},
+	}
+
 	dseCompanyPageHTML, _ := readTestDataFile("dse_company_page.html")
 
 	sc := httpmama.ServerConfig{
 		TestEndpoints: []httpmama.TestEndpoint{
-			{Path: "/", ResponseString: dseHomePageHTML},
-			{Path: "/displayCompany.php", ResponseString: dseCompanyPageHTML},
+			{Path: "/displayCompany.php", ResponseString: dseCompanyPageHTML, QueryParams: url.Values{"name": []string{"1JANATAMF"}}},
 		},
 	}
 	ts := httpmama.NewTestServer(sc)
 	defer ts.Close()
 
 	os.Setenv("DSE_HOMEPAGE", ts.URL)
-	st := NewStock(false)
-	data, err := st.GetAllStocks()
-	assert.NoError(t, err)
 
-	assert.Equal(t, 330, len(data))
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			st := DSE{}
+			data, err := st.GetStockData(tc.stockCode)
+			assert.NoError(t, err)
 
-	var testData stock.CompanyStockData
-	for _, sd := range data {
-		if sd.StockCode == "1JANATAMF" {
-			testData = sd
-		}
+			assert.Equal(t, tc.expectedCompanyData, data)
+		})
 	}
-
-	assert.Equal(t, "1JANATAMF", testData.StockCode)
-	assert.Equal(t, "6.10", testData.LastTradingPrice)
-	assert.Equal(t, "6.10", testData.ClosingPrice)
-	assert.Equal(t, "2:10 PM", testData.LastUpdate)
-	assert.Equal(t, "6.10 - 6.10", testData.DaysRange)
-	assert.Equal(t, "5.70 - 6.60", testData.WeeksMovingRange)
-	assert.Equal(t, "6.10", testData.OpeningPrice)
-	assert.Equal(t, "30,022.00", testData.DaysVolume)
-	assert.Equal(t, "6.10", testData.AdjustedOpening)
-	assert.Equal(t, "14", testData.DaysTrade)
-	assert.Equal(t, "6.10", testData.YesterdayClosing)
-	assert.Equal(t, "1,768.532", testData.MarketCapitalization)
 }
