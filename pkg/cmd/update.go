@@ -20,7 +20,7 @@ func NewUpdateCommand() *cobra.Command {
 		Long:  "Update stock price information for companies",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			st := stock.NewStock(filename != "")
-			stockData, err := st.GetData()
+			stockData, err := st.GetAllStocks()
 			if err != nil {
 				return err
 			}

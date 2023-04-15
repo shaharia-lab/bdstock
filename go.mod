@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/PuerkitoBio/goquery v1.8.1
+	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/shahariaazam/httpmama v1.0.0
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.7.0

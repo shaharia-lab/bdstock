@@ -20,7 +20,6 @@ func readTestDataFile(filename string) (string, error) {
 }
 
 func TestStock_GetData(t *testing.T) {
-
 	dseHomePageHTML, _ := readTestDataFile("dse_homepage.html")
 	dseCompanyPageHTML, _ := readTestDataFile("dse_company_page.html")
 
@@ -33,9 +32,9 @@ func TestStock_GetData(t *testing.T) {
 	ts := httpmama.NewTestServer(sc)
 	defer ts.Close()
 
-	os.Setenv(dseHomepageEnvKey, ts.URL)
+	os.Setenv("DSE_HOMEPAGE", ts.URL)
 	st := NewStock(false)
-	data, err := st.GetData()
+	data, err := st.GetAllStocks()
 	assert.NoError(t, err)
 
 	assert.Equal(t, 330, len(data))

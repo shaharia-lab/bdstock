@@ -5,19 +5,22 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/kelseyhightower/envconfig"
 )
 
-const (
-	batchSize         = 10
-	dseHomepage       = "https://www.dsebd.org/"
-	dseHomepageEnvKey = "DSE_HOMEPAGE"
-)
+type DSEConfig struct {
+	Homepage string `envconfig:"DSE_HOMEPAGE" default:"https://www.dsebd.org/"`
+}
+
+type Config struct {
+	DSE       DSEConfig
+	BatchSize int `envconfig:"DSE_BATCH_SIZE" default:"10"`
+}
 
 // CompanyStockData store stock data
 type CompanyStockData struct {
@@ -37,40 +40,39 @@ type CompanyStockData struct {
 
 // Stock processor
 type Stock struct {
-	verbose     bool
-	dseEndpoint string
+	verbose bool
+	config  Config
 }
 
 // NewStock construct new stock processor
 func NewStock(verbose bool) *Stock {
-	dseHome := dseHomepage
-	if homepage, exists := os.LookupEnv(dseHomepageEnvKey); exists {
-		dseHome = homepage
+	var cfg Config
+	err := envconfig.Process("", &cfg)
+	if err != nil {
+		return nil
 	}
 
-	return &Stock{verbose: verbose, dseEndpoint: dseHome}
+	return &Stock{verbose: verbose, config: cfg}
 }
 
-func (s *Stock) resolveDSEHomepage() string {
-	if value, exists := os.LookupEnv(dseHomepageEnvKey); exists {
-		return value
-	}
-
-	return dseHomepage
-}
-
-// GetData fetch data from URL
-func (s *Stock) GetData() ([]CompanyStockData, error) {
+// GetAllStocks fetch and parse all stocks from Dhaka Stock Exchange
+func (s *Stock) GetAllStocks() ([]CompanyStockData, error) {
 	stockCodes := s.getAllStockCodes()
 
-	stockInfo := s.GetDataInBatch(stockCodes, batchSize)
+	stockInfo, ers := s.GetStockInBatches(stockCodes, s.config.BatchSize)
+
+	if len(ers) == len(stockCodes) {
+		return []CompanyStockData{}, fmt.Errorf("failed to get the stock information due to errors")
+	}
 
 	return stockInfo, nil
 }
 
-// GetDataInBatch get the company stock information for each stock codes in a batch for faster fetching
-func (s *Stock) GetDataInBatch(stockCodes []string, batchSize int) []CompanyStockData {
+// GetStockInBatches fetch and parse stock information in batches with parallel processing
+func (s *Stock) GetStockInBatches(stockCodes []string, batchSize int) ([]CompanyStockData, []error) {
 	var stockInfo []CompanyStockData
+	var ers []error
+
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 
@@ -94,9 +96,15 @@ func (s *Stock) GetDataInBatch(stockCodes []string, batchSize int) []CompanyStoc
 
 				s.printLog(fmt.Sprintf("[%d/%d] collecting stock price for %s", i, len(stockCodes), code))
 
-				companyData := s.GetStockInformation(code)
+				companyData, err := s.GetStockInfo(code)
 				mu.Lock()
-				stockInfo = append(stockInfo, companyData)
+
+				if err != nil {
+					ers = append(ers, err)
+				} else {
+					stockInfo = append(stockInfo, companyData)
+				}
+
 				mu.Unlock()
 				i++
 			}
@@ -109,7 +117,64 @@ func (s *Stock) GetDataInBatch(stockCodes []string, batchSize int) []CompanyStoc
 	elapsedTime := time.Since(startTime)
 	s.printLog(fmt.Sprintf("elapsed time: %s seconds", elapsedTime.String()))
 
-	return stockInfo
+	return stockInfo, ers
+}
+
+// GetStockInfo fetch and parse stock information for a specific stock or company
+func (s *Stock) GetStockInfo(stockCode string) (CompanyStockData, error) {
+	companySpecificPage, err := s.getHTML(fmt.Sprintf("/displayCompany.php?name=%s", stockCode))
+	if err != nil {
+		return CompanyStockData{}, err
+	}
+
+	return s.parseCompanyPageData(stockCode, companySpecificPage), nil
+}
+
+func (s *Stock) parseCompanyPageData(stockCode string, doc *goquery.Document) CompanyStockData {
+	// Parse table rows using goquery
+	rows := doc.Find("table#company tbody tr")
+
+	companyData := CompanyStockData{
+		StockCode:            stockCode,
+		LastTradingPrice:     rows.Eq(1).Find("td").Eq(1).Text(),
+		ClosingPrice:         rows.Eq(1).Find("td").Eq(1).Text(),
+		LastUpdate:           rows.Eq(2).Find("td").Eq(0).Text(),
+		DaysRange:            rows.Eq(2).Find("td").Eq(1).Text(),
+		WeeksMovingRange:     rows.Eq(4).Find("td").Eq(1).Text(),
+		OpeningPrice:         rows.Eq(5).Find("td").Eq(0).Text(),
+		DaysVolume:           rows.Eq(5).Find("td").Eq(1).Text(),
+		AdjustedOpening:      rows.Eq(6).Find("td").Eq(0).Text(),
+		DaysTrade:            rows.Eq(6).Find("td").Eq(1).Text(),
+		YesterdayClosing:     rows.Eq(7).Find("td").Eq(0).Text(),
+		MarketCapitalization: rows.Eq(7).Find("td").Eq(1).Text(),
+	}
+
+	return companyData
+}
+
+func (s *Stock) getHTML(url string) (*goquery.Document, error) {
+	resp, err := http.Get(s.config.DSE.Homepage + url)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New("failed to fetch the page" + url)
+	}
+
+	// Parse the response body using goquery
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return doc, nil
+}
+
+func (s *Stock) printLog(message string) {
+	if s.verbose {
+		fmt.Println(message)
+	}
 }
 
 // helper function to get minimum of two integers
@@ -142,61 +207,4 @@ func (s *Stock) parseStockCodes(doc *goquery.Document) []string {
 	})
 
 	return stockCodes
-}
-
-// GetStockInformation retrieves stock information of a company
-func (s *Stock) GetStockInformation(stockCode string) CompanyStockData {
-	companySpecificPage, err := s.getHTML(fmt.Sprintf("/displayCompany.php?name=%s", stockCode))
-	if err != nil {
-		panic(err)
-	}
-
-	return s.parseCompanyPageData(stockCode, companySpecificPage)
-}
-
-func (s *Stock) parseCompanyPageData(stockCode string, doc *goquery.Document) CompanyStockData {
-	// Parse table rows using goquery
-	rows := doc.Find("table#company tbody tr")
-
-	companyData := CompanyStockData{
-		StockCode:            stockCode,
-		LastTradingPrice:     rows.Eq(1).Find("td").Eq(1).Text(),
-		ClosingPrice:         rows.Eq(1).Find("td").Eq(1).Text(),
-		LastUpdate:           rows.Eq(2).Find("td").Eq(0).Text(),
-		DaysRange:            rows.Eq(2).Find("td").Eq(1).Text(),
-		WeeksMovingRange:     rows.Eq(4).Find("td").Eq(1).Text(),
-		OpeningPrice:         rows.Eq(5).Find("td").Eq(0).Text(),
-		DaysVolume:           rows.Eq(5).Find("td").Eq(1).Text(),
-		AdjustedOpening:      rows.Eq(6).Find("td").Eq(0).Text(),
-		DaysTrade:            rows.Eq(6).Find("td").Eq(1).Text(),
-		YesterdayClosing:     rows.Eq(7).Find("td").Eq(0).Text(),
-		MarketCapitalization: rows.Eq(7).Find("td").Eq(1).Text(),
-	}
-
-	return companyData
-}
-
-func (s *Stock) getHTML(url string) (*goquery.Document, error) {
-	resp, err := http.Get(s.dseEndpoint + url)
-	if err != nil {
-		return nil, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New("failed to fetch the page" + url)
-	}
-
-	// Parse the response body using goquery
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return doc, nil
-}
-
-func (s *Stock) printLog(message string) {
-	if s.verbose {
-		fmt.Println(message)
-	}
 }
