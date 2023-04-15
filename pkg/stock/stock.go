@@ -45,12 +45,13 @@ func NewStock(dseEndpoint string, verbose bool) *Stock {
 func (s *Stock) GetData() ([]CompanyStockData, error) {
 	stockCodes := s.getAllStockCodes()
 
-	stockInfo := s.collectStockPriceInBatch(stockCodes, batchSize)
+	stockInfo := s.GetDataInBatch(stockCodes, batchSize)
 
 	return stockInfo, nil
 }
 
-func (s *Stock) collectStockPriceInBatch(stockCodes []string, batchSize int) []CompanyStockData {
+// GetDataInBatch get the company stock information for each stock codes in a batch for faster fetching
+func (s *Stock) GetDataInBatch(stockCodes []string, batchSize int) []CompanyStockData {
 	var stockInfo []CompanyStockData
 	var wg sync.WaitGroup
 	var mu sync.Mutex
@@ -75,7 +76,7 @@ func (s *Stock) collectStockPriceInBatch(stockCodes []string, batchSize int) []C
 
 				s.printLog(fmt.Sprintf("[%d/%d] collecting stock price for %s", i, len(stockCodes), code))
 
-				companyData := s.getStockInformation(code)
+				companyData := s.GetStockInformation(code)
 				mu.Lock()
 				stockInfo = append(stockInfo, companyData)
 				mu.Unlock()
@@ -125,7 +126,8 @@ func (s *Stock) parseStockCodes(doc *goquery.Document) []string {
 	return stockCodes
 }
 
-func (s *Stock) getStockInformation(stockCode string) CompanyStockData {
+// GetStockInformation retrieves stock information of a company
+func (s *Stock) GetStockInformation(stockCode string) CompanyStockData {
 	companySpecificPage, err := s.getHTML(fmt.Sprintf("/displayCompany.php?name=%s", stockCode))
 	if err != nil {
 		panic(err)

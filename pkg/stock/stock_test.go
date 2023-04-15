@@ -3,10 +3,9 @@ package stock
 import (
 	"fmt"
 	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 
+	"github.com/shahariaazam/httpmama"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,27 +18,18 @@ func readTestDataFile(filename string) (string, error) {
 	return string(data), nil
 }
 
-func getHandler() http.Handler {
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fileContent, _ := readTestDataFile("dse_homepage.html")
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintln(w, fileContent)
-	})
-
-	mux.HandleFunc("/displayCompany.php", func(w http.ResponseWriter, r *http.Request) {
-		fileContent, _ := readTestDataFile("dse_company_page.html")
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintln(w, fileContent)
-	})
-
-	return mux
-}
-
 func TestStock_GetData(t *testing.T) {
 
-	ts := httptest.NewServer(getHandler())
+	dseHomePageHTML, _ := readTestDataFile("dse_homepage.html")
+	dseCompanyPageHTML, _ := readTestDataFile("dse_company_page.html")
+
+	sc := httpmama.ServerConfig{
+		TestEndpoints: []httpmama.TestEndpoint{
+			{Path: "/", ResponseString: dseHomePageHTML},
+			{Path: "/displayCompany.php", ResponseString: dseCompanyPageHTML},
+		},
+	}
+	ts := httpmama.NewTestServer(sc)
 	defer ts.Close()
 
 	st := NewStock(ts.URL, false)
