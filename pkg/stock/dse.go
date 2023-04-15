@@ -57,7 +57,10 @@ func NewStock(verbose bool) *Stock {
 
 // GetAllStocks fetch and parse all stocks from Dhaka Stock Exchange
 func (s *Stock) GetAllStocks() ([]CompanyStockData, error) {
-	stockCodes := s.getAllStockCodes()
+	stockCodes, err := s.GetAllStockCodes()
+	if err != nil {
+		return nil, err
+	}
 
 	stockInfo, ers := s.GetStockInBatches(stockCodes, s.config.BatchSize)
 
@@ -122,19 +125,23 @@ func (s *Stock) GetStockInBatches(stockCodes []string, batchSize int) ([]Company
 
 // GetStockInfo fetch and parse stock information for a specific stock or company
 func (s *Stock) GetStockInfo(stockCode string) (CompanyStockData, error) {
-	companySpecificPage, err := s.getHTML(fmt.Sprintf("/displayCompany.php?name=%s", stockCode))
+	companyPageHTML, err := s.getHTML(fmt.Sprintf("/displayCompany.php?name=%s", stockCode))
 	if err != nil {
-		return CompanyStockData{}, err
+		return CompanyStockData{}, fmt.Errorf("failed to fetch company page. erro: %w", err)
 	}
 
-	return s.parseCompanyPageData(stockCode, companySpecificPage), nil
+	doc, err := goquery.NewDocumentFromReader(companyPageHTML.Body)
+	if err != nil {
+		return CompanyStockData{}, fmt.Errorf("failed to prepare the parser. error: %w", err)
+	}
+
+	return s.ParseCompanyPage(stockCode, doc), nil
 }
 
-func (s *Stock) parseCompanyPageData(stockCode string, doc *goquery.Document) CompanyStockData {
-	// Parse table rows using goquery
+func (s *Stock) ParseCompanyPage(stockCode string, doc *goquery.Document) CompanyStockData {
 	rows := doc.Find("table#company tbody tr")
 
-	companyData := CompanyStockData{
+	return CompanyStockData{
 		StockCode:            stockCode,
 		LastTradingPrice:     rows.Eq(1).Find("td").Eq(1).Text(),
 		ClosingPrice:         rows.Eq(1).Find("td").Eq(1).Text(),
@@ -148,11 +155,9 @@ func (s *Stock) parseCompanyPageData(stockCode string, doc *goquery.Document) Co
 		YesterdayClosing:     rows.Eq(7).Find("td").Eq(0).Text(),
 		MarketCapitalization: rows.Eq(7).Find("td").Eq(1).Text(),
 	}
-
-	return companyData
 }
 
-func (s *Stock) getHTML(url string) (*goquery.Document, error) {
+func (s *Stock) getHTML(url string) (*http.Response, error) {
 	resp, err := http.Get(s.config.DSE.Homepage + url)
 	if err != nil {
 		return nil, err
@@ -162,13 +167,7 @@ func (s *Stock) getHTML(url string) (*goquery.Document, error) {
 		return nil, errors.New("failed to fetch the page" + url)
 	}
 
-	// Parse the response body using goquery
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return doc, nil
+	return resp, nil
 }
 
 func (s *Stock) printLog(message string) {
@@ -185,16 +184,21 @@ func min(a, b int) int {
 	return b
 }
 
-func (s *Stock) getAllStockCodes() []string {
+func (s *Stock) GetAllStockCodes() ([]string, error) {
 	dseHomepage, err := s.getHTML("/")
 	if err != nil {
 		panic(err)
 	}
 
-	return s.parseStockCodes(dseHomepage)
+	doc, err := goquery.NewDocumentFromReader(dseHomepage.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to prepare the parser. error: %w", err)
+	}
+
+	return s.ParseStockCodes(doc), nil
 }
 
-func (s *Stock) parseStockCodes(doc *goquery.Document) []string {
+func (s *Stock) ParseStockCodes(doc *goquery.Document) []string {
 	var stockCodes []string
 
 	// Find all <a> elements with class "abhead" and extract the company stock code
