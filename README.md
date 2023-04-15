@@ -23,10 +23,44 @@
 
 ## 🤔  What is BDStock?
 
-**BD Stock Market** a.k.a **bdstock** is a command-line tool that collects and provide stock price information for
-Bangladeshi stock exchange market. Currently, it provides the stock information only for [Dhaka Stock Exchange](https://www.dsebd.org).
+**BD Stock Market** a.k.a **bdstock** is a command-line tool and a library in Go to collect and provide stock price 
+information for Bangladeshi stock exchange market. Currently, it provides the stock information only for
+[Dhaka Stock Exchange](https://www.dsebd.org).
 
-## Usage
+## Use as a library
+
+### Get stock price for a single Company
+
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/shahariaazam/bdstock/pkg/stock"
+)
+
+func main() {
+	bds := stock.NewStock("https://www.dsebd.org/", false)
+	si := bds.GetStockInformation("1JANATAMF")
+	fmt.Printf("closing price for %s is %s\n", si.StockCode, si.ClosingPrice)
+}
+```
+
+### Get stock prices for multiple Company
+
+Also, if you want to get the stock information for many companies at once in a batch,
+
+```go
+bd := stock.NewStock("https://www.dsebd.org/", false)
+si := bd.GetDataInBatch([]string{"1JANATAMF", "NAVANAPHAR"}, 20)
+for _, s := range si {
+    fmt.Printf("closing price for %s is %s\n", s.StockCode, s.ClosingPrice)
+}
+```
+
+In the above code, it would fetch and parse all the stock price in a batch mode (per batch 20)
+
+## Use as a Command
 
 Download the latest release from [GitHub](https://github.com/shahariaazam/bdstock/releases). And run the
 program. Here is the command details.
