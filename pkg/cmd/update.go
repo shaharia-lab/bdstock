@@ -7,8 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"bd-stock-market/pkg/stock"
-
+	"github.com/shahariaazam/bdstock/pkg/stock"
 	"github.com/spf13/cobra"
 )
 

@@ -1,4 +1,4 @@
-module bd-stock-market
+module github.com/shahariaazam/bdstock
 
 go 1.18
 

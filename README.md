@@ -2,22 +2,22 @@
 <p align="center">Collect stock price information for Bangladeshi Stock Exchange</p>
 
 <p align="center">
-  <a href="https://github.com/shahariaazam/bd-stock-market/actions/workflows/CI.yaml"><img src="https://github.com/shahariaazam/bd-stock-market/actions/workflows/CI.yaml/badge.svg" height="20"/></a>
-  <a href="https://codecov.io/gh/shahariaazam/bd-stock-market"><img src="https://codecov.io/gh/shahariaazam/bd-stock-market/branch/master/graph/badge.svg?token=NKTKQ45HDN" height="20"/></a>
-  <a href="https://sonarcloud.io/summary/new_code?id=shahariaazam_bd-stock-market"><img src="https://sonarcloud.io/api/project_badges/measure?project=shahariaazam_bd-stock-market&metric=reliability_rating" height="20"/></a>
-  <a href="https://sonarcloud.io/summary/new_code?id=shahariaazam_bd-stock-market"><img src="https://sonarcloud.io/api/project_badges/measure?project=shahariaazam_bd-stock-market&metric=vulnerabilities" height="20"/></a>
-  <a href="https://sonarcloud.io/summary/new_code?id=shahariaazam_bd-stock-market"><img src="https://sonarcloud.io/api/project_badges/measure?project=shahariaazam_bd-stock-market&metric=security_rating" height="20"/></a>
-  <a href="https://sonarcloud.io/summary/new_code?id=shahariaazam_bd-stock-market"><img src="https://sonarcloud.io/api/project_badges/measure?project=shahariaazam_bd-stock-market&metric=sqale_rating" height="20"/></a>
-  <a href="https://sonarcloud.io/summary/new_code?id=shahariaazam_bd-stock-market"><img src="https://sonarcloud.io/api/project_badges/measure?project=shahariaazam_bd-stock-market&metric=code_smells" height="20"/></a>
-  <a href="https://sonarcloud.io/summary/new_code?id=shahariaazam_bd-stock-market"><img src="https://sonarcloud.io/api/project_badges/measure?project=shahariaazam_bd-stock-market&metric=ncloc" height="20"/></a>
-  <a href="https://sonarcloud.io/summary/new_code?id=shahariaazam_bd-stock-market"><img src="https://sonarcloud.io/api/project_badges/measure?project=shahariaazam_bd-stock-market&metric=alert_status" height="20"/></a>
-  <a href="https://sonarcloud.io/summary/new_code?id=shahariaazam_bd-stock-market"><img src="https://sonarcloud.io/api/project_badges/measure?project=shahariaazam_bd-stock-market&metric=duplicated_lines_density" height="20"/></a>
-  <a href="https://sonarcloud.io/summary/new_code?id=shahariaazam_bd-stock-market"><img src="https://sonarcloud.io/api/project_badges/measure?project=shahariaazam_bd-stock-market&metric=bugs" height="20"/></a>
-  <a href="https://sonarcloud.io/summary/new_code?id=shahariaazam_bd-stock-market"><img src="https://sonarcloud.io/api/project_badges/measure?project=shahariaazam_bd-stock-market&metric=sqale_index" height="20"/></a>
+  <a href="https://github.com/shahariaazam/bdstock/actions/workflows/CI.yaml"><img src="https://github.com/shahariaazam/bdstock/actions/workflows/CI.yaml/badge.svg" height="20"/></a>
+  <a href="https://codecov.io/gh/shahariaazam/bdstock"><img src="https://codecov.io/gh/shahariaazam/bdstock/branch/master/graph/badge.svg?token=NKTKQ45HDN" height="20"/></a>
+  <a href="https://sonarcloud.io/summary/new_code?id=shahariaazam_bdstock"><img src="https://sonarcloud.io/api/project_badges/measure?project=shahariaazam_bdstock&metric=reliability_rating" height="20"/></a>
+  <a href="https://sonarcloud.io/summary/new_code?id=shahariaazam_bdstock"><img src="https://sonarcloud.io/api/project_badges/measure?project=shahariaazam_bdstock&metric=vulnerabilities" height="20"/></a>
+  <a href="https://sonarcloud.io/summary/new_code?id=shahariaazam_bdstock"><img src="https://sonarcloud.io/api/project_badges/measure?project=shahariaazam_bdstock&metric=security_rating" height="20"/></a>
+  <a href="https://sonarcloud.io/summary/new_code?id=shahariaazam_bdstock"><img src="https://sonarcloud.io/api/project_badges/measure?project=shahariaazam_bdstock&metric=sqale_rating" height="20"/></a>
+  <a href="https://sonarcloud.io/summary/new_code?id=shahariaazam_bdstock"><img src="https://sonarcloud.io/api/project_badges/measure?project=shahariaazam_bdstock&metric=code_smells" height="20"/></a>
+  <a href="https://sonarcloud.io/summary/new_code?id=shahariaazam_bdstock"><img src="https://sonarcloud.io/api/project_badges/measure?project=shahariaazam_bdstock&metric=ncloc" height="20"/></a>
+  <a href="https://sonarcloud.io/summary/new_code?id=shahariaazam_bdstock"><img src="https://sonarcloud.io/api/project_badges/measure?project=shahariaazam_bdstock&metric=alert_status" height="20"/></a>
+  <a href="https://sonarcloud.io/summary/new_code?id=shahariaazam_bdstock"><img src="https://sonarcloud.io/api/project_badges/measure?project=shahariaazam_bdstock&metric=duplicated_lines_density" height="20"/></a>
+  <a href="https://sonarcloud.io/summary/new_code?id=shahariaazam_bdstock"><img src="https://sonarcloud.io/api/project_badges/measure?project=shahariaazam_bdstock&metric=bugs" height="20"/></a>
+  <a href="https://sonarcloud.io/summary/new_code?id=shahariaazam_bdstock"><img src="https://sonarcloud.io/api/project_badges/measure?project=shahariaazam_bdstock&metric=sqale_index" height="20"/></a>
 </p><br/><br/>
 
 <p align="center">
-  <a href="https://github.com/shahariaazam/bd-stock-market"><img src="https://user-images.githubusercontent.com/1095008/230057933-5c4659da-1383-4f99-914d-5bf56c8892fe.png" width="100%"/></a>
+  <a href="https://github.com/shahariaazam/bdstock"><img src="https://user-images.githubusercontent.com/1095008/230057933-5c4659da-1383-4f99-914d-5bf56c8892fe.png" width="100%"/></a>
 </p><br/>
 
 
@@ -28,7 +28,7 @@ Bangladeshi stock exchange market. Currently, it provides the stock information 
 
 ## Usage
 
-Download the latest release from [GitHub](https://github.com/shahariaazam/bd-stock-market/releases). And run the
+Download the latest release from [GitHub](https://github.com/shahariaazam/bdstock/releases). And run the
 program. Here is the command details.
 
 ```shell
@@ -92,8 +92,8 @@ We disclaim all liability for any damages or losses, including direct, indirect,
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please follow the guidelines outlined in the [CONTRIBUTING](https://github.com/shahariaazam/bd-stock-market/blob/master/CONTRIBUTING.md) file.
+Contributions are welcome! Please follow the guidelines outlined in the [CONTRIBUTING](https://github.com/shahariaazam/bdstock/blob/master/CONTRIBUTING.md) file.
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](https://github.com/shahariaazam/bd-stock-market/blob/master/LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/shahariaazam/bdstock/blob/master/LICENSE) file for details.

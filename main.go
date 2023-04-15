@@ -2,9 +2,10 @@
 package main
 
 import (
-	"bd-stock-market/pkg/cmd"
 	"context"
 	"log"
+
+	"github.com/shahariaazam/bdstock/pkg/cmd"
 )
 
 func main() {
