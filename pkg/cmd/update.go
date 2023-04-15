@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
 
 	"github.com/shahariaazam/bdstock/pkg/stock"
 	"github.com/spf13/cobra"
@@ -20,12 +19,7 @@ func NewUpdateCommand() *cobra.Command {
 		Short: "Update stock price information for companies",
 		Long:  "Update stock price information for companies",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			dseEndpoint, envFound := os.LookupEnv("DSE_ENDPOINT")
-			if !envFound {
-				dseEndpoint = "https://www.dsebd.org"
-			}
-
-			st := stock.NewStock(dseEndpoint, filename != "")
+			st := stock.NewStock(filename != "")
 			stockData, err := st.GetData()
 			if err != nil {
 				return err

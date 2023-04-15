@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -12,7 +13,11 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-const batchSize = 10
+const (
+	batchSize         = 10
+	dseHomepage       = "https://www.dsebd.org/"
+	dseHomepageEnvKey = "DSE_HOMEPAGE"
+)
 
 // CompanyStockData store stock data
 type CompanyStockData struct {
@@ -37,8 +42,21 @@ type Stock struct {
 }
 
 // NewStock construct new stock processor
-func NewStock(dseEndpoint string, verbose bool) *Stock {
-	return &Stock{verbose: verbose, dseEndpoint: dseEndpoint}
+func NewStock(verbose bool) *Stock {
+	dseHome := dseHomepage
+	if homepage, exists := os.LookupEnv(dseHomepageEnvKey); exists {
+		dseHome = homepage
+	}
+
+	return &Stock{verbose: verbose, dseEndpoint: dseHome}
+}
+
+func (s *Stock) resolveDSEHomepage() string {
+	if value, exists := os.LookupEnv(dseHomepageEnvKey); exists {
+		return value
+	}
+
+	return dseHomepage
 }
 
 // GetData fetch data from URL

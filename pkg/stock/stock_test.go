@@ -3,6 +3,7 @@ package stock
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/shahariaazam/httpmama"
@@ -32,7 +33,8 @@ func TestStock_GetData(t *testing.T) {
 	ts := httpmama.NewTestServer(sc)
 	defer ts.Close()
 
-	st := NewStock(ts.URL, false)
+	os.Setenv(dseHomepageEnvKey, ts.URL)
+	st := NewStock(false)
 	data, err := st.GetData()
 	assert.NoError(t, err)
 
